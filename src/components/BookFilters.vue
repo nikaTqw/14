@@ -1,62 +1,53 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="add-form">
-    <h2>Добавить новую книгу</h2>
-
-    <div class="form-group">
+  <div class="filters">
+    <div class="search">
       <input
-        v-model="formData.title"
+        v-model="searchQuery"
         type="text"
-        placeholder="Название книги"
-        required
+        placeholder="Поиск по названию или автору..."
       />
     </div>
 
-    <div class="form-group">
-      <input
-        v-model="formData.author"
-        type="text"
-        placeholder="Автор"
-        required
-      />
+    <div class="filter-buttons">
+      <button
+        v-for="option in filterOptions"
+        :key="option.value"
+        @click="$emit('update:filter', option.value)"
+        :class="['filter-btn', { active: filter === option.value }]"
+      >
+        {{ option.label }}
+      </button>
     </div>
 
-    <div class="form-group">
-      <select v-model="formData.genre" required>
-        <option value="">Выберите жанр</option>
-        <option value="Роман">Роман</option>
-        <option value="Фантастика">Фантастика</option>
-        <option value="Детектив">Детектив</option>
-        <option value="Научная">Научная</option>
-        <option value="Поэзия">Поэзия</option>
-      </select>
+    <div class="stats">
+      <p>
+        Всего: {{ total }} | Прочитано: {{ completed }} | Осталось:
+        {{ total - completed }}
+      </p>
     </div>
-
-    <button type="submit" class="btn-submit">Добавить книгу</button>
-  </form>
+  </div>
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { computed } from "vue";
 
-const emit = defineEmits(["add-book"]);
+const props = defineProps(["filter", "books"]);
+defineEmits(["update:filter"]);
 
-const formData = reactive({
-  title: "",
-  author: "",
-  genre: "",
-});
+const searchQuery = defineModel("searchQuery");
 
-const handleSubmit = () => {
-  emit("add-book", { ...formData });
-  // Очистка формы
-  formData.title = "";
-  formData.author = "";
-  formData.genre = "";
-};
+const filterOptions = [
+  { value: "all", label: "Все" },
+  { value: "unread", label: "Непрочитанные" },
+  { value: "read", label: "Прочитанные" },
+];
+
+const total = computed(() => props.books.length);
+const completed = computed(() => props.books.filter((b) => b.completed).length);
 </script>
 
 <style scoped>
-.add-form {
+.filters {
   background: white;
   padding: 20px;
   border-radius: 8px;
@@ -64,17 +55,11 @@ const handleSubmit = () => {
   margin-bottom: 20px;
 }
 
-.add-form h2 {
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.form-group {
+.search {
   margin-bottom: 15px;
 }
 
-.form-group input,
-.form-group select {
+.search input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -82,25 +67,35 @@ const handleSubmit = () => {
   font-size: 1em;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-btn:hover {
+  background: #f0f0f0;
+}
+
+.filter-btn.active {
+  background: #4caf50;
+  color: white;
   border-color: #4caf50;
 }
 
-.btn-submit {
-  width: 100%;
-  padding: 12px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.btn-submit:hover {
-  background: #45a049;
+.stats {
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  color: #666;
+  font-size: 0.9em;
 }
 </style>
